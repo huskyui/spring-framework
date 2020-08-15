@@ -82,6 +82,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @throws BeansException if context creation failed
 	 */
 	public ClassPathXmlApplicationContext(String configLocation) throws BeansException {
+		// String数组,true是refresh,null是parent
 		this(new String[] {configLocation}, true, null);
 	}
 
@@ -137,10 +138,13 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	public ClassPathXmlApplicationContext(
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
-
+		// 在ApplicationConext抽象类中加入parent
 		super(parent);
+		// AbstractRefreshableConfigApplicationContext抽象类里面有个 configLocations
 		setConfigLocations(configLocations);
+		// 是否自动刷新上下文
 		if (refresh) {
+			// 此处才是重头戏 调用AbstractApplicationContext.refresh()
 			refresh();
 		}
 	}

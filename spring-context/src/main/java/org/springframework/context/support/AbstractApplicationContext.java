@@ -549,44 +549,57 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
+			// 如果是生成一个 DefaultStartupStep 对象，参数不重要。其他就不一样了
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
+			// 上下文准备刷新
 			// Prepare this context for refreshing.
 			prepareRefresh();
 
+			// 告诉子类刷新内部bean工厂
 			// Tell the subclass to refresh the internal bean factory.
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
+			// 准备在这种情况下使用的bean工厂。
 			// Prepare the bean factory for use in this context.
 			prepareBeanFactory(beanFactory);
 
 			try {
+				// 允许在上下文子类中对bean工厂进行后处理。
 				// Allows post-processing of the bean factory in context subclasses.
 				postProcessBeanFactory(beanFactory);
 
+				// 生成了一个StartupStep对象
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
+				// 调用在上下文中注册为bean的工厂处理器。
 				// Invoke factory processors registered as beans in the context.
 				invokeBeanFactoryPostProcessors(beanFactory);
-
+				// 注册拦截Bean创建的Bean处理器
 				// Register bean processors that intercept bean creation.
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
+				// 为此上下文初始化消息源。
 				// Initialize message source for this context.
 				initMessageSource();
 
+				// 为此上下文初始化事件多播器。
 				// Initialize event multicaster for this context.
 				initApplicationEventMulticaster();
 
+				// 在特定上下文子类中初始化其他特殊bean。
 				// Initialize other special beans in specific context subclasses.
 				onRefresh();
 
+				// 检查侦听器bean并注册它们
 				// Check for listener beans and register them.
 				registerListeners();
 
+				// 实例化所有剩余的（非延迟初始化）单例,注意这是单例
 				// Instantiate all remaining (non-lazy-init) singletons.
 				finishBeanFactoryInitialization(beanFactory);
 
+				// 最后一步：发布相应的事件。
 				// Last step: publish corresponding event.
 				finishRefresh();
 			}
@@ -622,7 +635,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		// Switch to active.
+		// 记录一下，参数
 		this.startupDate = System.currentTimeMillis();
+		// AtomicBoolean
 		this.closed.set(false);
 		this.active.set(true);
 
@@ -635,9 +650,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
+		// 在上下文环境中初始化任何占位符属性资源，todo 没看懂
 		// Initialize any placeholder property sources in the context environment.
 		initPropertySources();
 
+		//
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
 		getEnvironment().validateRequiredProperties();
