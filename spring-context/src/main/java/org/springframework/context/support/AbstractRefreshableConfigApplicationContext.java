@@ -123,6 +123,10 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
+		// 如果environment为空，创建一个。
+		// 这句话分为两段，
+		// 1.getEnvoironment() 一个是获取系统变量，还有获取系统环境，将数据放入PropertySource里面
+		// 2.resolveRequirePlaceholders(path) 有点像mybatis中的设计，将${key},通过上面PropertySource获取对应的value替换掉
 		return getEnvironment().resolveRequiredPlaceholders(path);
 	}
 

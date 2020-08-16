@@ -75,8 +75,14 @@ public class StandardEnvironment extends AbstractEnvironment {
 	 */
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
+		// systemProperties，里面有很多参数，如sun.jnu.encoding:GBK   user.country CN 等等
+		// 调用的是System.getProperties();
+		//
 		propertySources.addLast(
 				new PropertiesPropertySource(SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME, getSystemProperties()));
+		//  systemEnvironment 很多都是电脑的系统变量。如windows里面的设置的 系统变量
+		// 这里会根据spring.getenv.ignore这个值，然后去是否获取系统env
+		// System.getenv();
 		propertySources.addLast(
 				new SystemEnvironmentPropertySource(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, getSystemEnvironment()));
 	}
