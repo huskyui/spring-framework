@@ -415,6 +415,7 @@ public class BeanDefinitionParserDelegate {
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
+		//  解析name，分割，放入alias集合中
 		List<String> aliases = new ArrayList<>();
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
@@ -422,6 +423,7 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		String beanName = id;
+		// 如果beanName为空，那么就用alias中的第一个
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
 			if (logger.isTraceEnabled()) {
@@ -431,9 +433,10 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		if (containingBean == null) {
+			// 验证在当前级别的bean元素嵌套中尚未使用指定的bean名称和别名。
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-
+		// 解析xml里面关于bean的相关属性
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -512,19 +515,25 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			// 生成一个beanClass
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			// bean的同级的属性，如scope,lazyInit
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+			// 设置description
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
-
+			// 解析节点孩子中的meta
 			parseMetaElements(ele, bd);
+			// 通过给抽象类来实现lookup-method来注入属性
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			// replaced-method是为了替换调用的方法，这是使用cglib
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
-
+			// 构造参数的设计
 			parseConstructorArgElements(ele, bd);
+			// 参数
 			parsePropertyElements(ele, bd);
+			// 可以与@Qualifier和@Autowried一起使用
 			parseQualifierElements(ele, bd);
-
+			//
 			bd.setResource(this.readerContext.getResource());
 			bd.setSource(extractSource(ele));
 
@@ -556,10 +565,12 @@ public class BeanDefinitionParserDelegate {
 	public AbstractBeanDefinition parseBeanDefinitionAttributes(Element ele, String beanName,
 			@Nullable BeanDefinition containingBean, AbstractBeanDefinition bd) {
 
+		// singleton 属性已经过时，现在使用scope
 		if (ele.hasAttribute(SINGLETON_ATTRIBUTE)) {
 			error("Old 1.x 'singleton' attribute in use - upgrade to 'scope' declaration", ele);
 		}
 		else if (ele.hasAttribute(SCOPE_ATTRIBUTE)) {
+			// scope 中有SINGLETON和PROTOTYPE
 			bd.setScope(ele.getAttribute(SCOPE_ATTRIBUTE));
 		}
 		else if (containingBean != null) {
@@ -575,8 +586,9 @@ public class BeanDefinitionParserDelegate {
 		if (isDefaultValue(lazyInit)) {
 			lazyInit = this.defaults.getLazyInit();
 		}
+		// 设置是否延迟加载
 		bd.setLazyInit(TRUE_VALUE.equals(lazyInit));
-
+		// 设置autowire的模式
 		String autowire = ele.getAttribute(AUTOWIRE_ATTRIBUTE);
 		bd.setAutowireMode(getAutowireMode(autowire));
 
@@ -638,7 +650,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	protected AbstractBeanDefinition createBeanDefinition(@Nullable String className, @Nullable String parentName)
 			throws ClassNotFoundException {
-
+		//
 		return BeanDefinitionReaderUtils.createBeanDefinition(
 				parentName, className, this.readerContext.getBeanClassLoader());
 	}
@@ -648,12 +660,14 @@ public class BeanDefinitionParserDelegate {
 	 */
 	public void parseMetaElements(Element ele, BeanMetadataAttributeAccessor attributeAccessor) {
 		NodeList nl = ele.getChildNodes();
+		// 查看element的子节点菜单，并遍历子菜单，如果是meta ，就加入
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
 			if (isCandidateElement(node) && nodeNameEquals(node, META_ELEMENT)) {
 				Element metaElement = (Element) node;
 				String key = metaElement.getAttribute(KEY_ATTRIBUTE);
 				String value = metaElement.getAttribute(VALUE_ATTRIBUTE);
+				// key value 放入一个LinkedHashMap
 				BeanMetadataAttribute attribute = new BeanMetadataAttribute(key, value);
 				attribute.setSource(extractSource(metaElement));
 				attributeAccessor.addMetadataAttribute(attribute);

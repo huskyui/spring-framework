@@ -127,8 +127,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// this behavior emulates a stack of delegates without actually necessitating one.
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
-
+		// 默认命名空间 http://www.springframework.org/schema/beans
 		if (this.delegate.isDefaultNamespace(root)) {
+			// 检查profile的属性值，然后根据,;分割，然后判断
 			String profileSpec = root.getAttribute(PROFILE_ATTRIBUTE);
 			if (StringUtils.hasText(profileSpec)) {
 				String[] specifiedProfiles = StringUtils.tokenizeToStringArray(
@@ -144,8 +145,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				}
 			}
 		}
-
+		// 用于用户自定义被解析，空实现
 		preProcessXml(root);
+
 		parseBeanDefinitions(root, this.delegate);
 		postProcessXml(root);
 
@@ -187,12 +189,16 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	}
 
 	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
+		// <import resource="spring-config.xml"/>
 		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
+			// 解析一个“ import”元素，并将给定资源中的bean定义加载到bean工厂中。
 			importBeanDefinitionResource(ele);
 		}
+		// 注册别名
 		else if (delegate.nodeNameEquals(ele, ALIAS_ELEMENT)) {
 			processAliasRegistration(ele);
 		}
+		// bean标签相关
 		else if (delegate.nodeNameEquals(ele, BEAN_ELEMENT)) {
 			processBeanDefinition(ele, delegate);
 		}

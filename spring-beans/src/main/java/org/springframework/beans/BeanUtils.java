@@ -76,6 +76,7 @@ public abstract class BeanUtils {
 	private static final Set<Class<?>> unknownEditorTypes =
 			Collections.newSetFromMap(new ConcurrentReferenceHashMap<>(64));
 
+	// 不同类型的默认值
 	private static final Map<Class<?>, Object> DEFAULT_TYPE_VALUES;
 
 	static {
@@ -185,6 +186,7 @@ public abstract class BeanUtils {
 	public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws BeanInstantiationException {
 		Assert.notNull(ctor, "Constructor must not be null");
 		try {
+			// 好贱啊，各个都问一下，是否是构造器 public或者是否类是否是public,以及accessible，最后设置为accessible为true
 			ReflectionUtils.makeAccessible(ctor);
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
 				return KotlinDelegate.instantiateClass(ctor, args);
@@ -194,6 +196,7 @@ public abstract class BeanUtils {
 				Assert.isTrue(args.length <= parameterTypes.length, "Can't specify more arguments than constructor parameters");
 				Object[] argsWithDefaultValues = new Object[args.length];
 				for (int i = 0 ; i < args.length; i++) {
+					// 如果构造参数中未空，就设置默认值，之前在static静态方法区设置了配置值
 					if (args[i] == null) {
 						Class<?> parameterType = parameterTypes[i];
 						argsWithDefaultValues[i] = (parameterType.isPrimitive() ? DEFAULT_TYPE_VALUES.get(parameterType) : null);
@@ -202,6 +205,7 @@ public abstract class BeanUtils {
 						argsWithDefaultValues[i] = args[i];
 					}
 				}
+				// 构造器的newInstance
 				return ctor.newInstance(argsWithDefaultValues);
 			}
 		}

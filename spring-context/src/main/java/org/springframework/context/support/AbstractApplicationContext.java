@@ -558,15 +558,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// 上下文准备刷新
-			// Prepare this context for refreshing.
+			//
 			prepareRefresh();
 
 			// 告诉子类刷新内部bean工厂
 			// Tell the subclass to refresh the internal bean factory.
+			// 读取xml文件的配置信息到DefaultListableBeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// 准备在这种情况下使用的bean工厂。
 			// Prepare the bean factory for use in this context.
+
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -655,13 +657,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		// 在上下文环境中初始化任何占位符属性资源，todo 没看懂
+		// 在上下文环境中初始化任何占位符属性资源
+		// 空实现
 		// Initialize any placeholder property sources in the context environment.
 		initPropertySources();
 
 		//
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		// 验证必备的参数
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
