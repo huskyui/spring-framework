@@ -110,13 +110,16 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			if (System.getSecurityManager() != null) {
 				// use own privileged to change accessibility (when security is on)
 				AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+					// 构造器accessible 为true
 					ReflectionUtils.makeAccessible(ctor);
 					return null;
 				});
 			}
+			// 如果只是单纯的实例，走的是这里 。调用constructor.newInstance(args)
 			return BeanUtils.instantiateClass(ctor, args);
 		}
 		else {
+			// 如果有overrid方法的，需要走这里，使用cglib来构造实例
 			return instantiateWithMethodInjection(bd, beanName, owner, ctor, args);
 		}
 	}

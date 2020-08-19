@@ -561,14 +561,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			//
 			prepareRefresh();
 
-			// 告诉子类刷新内部bean工厂
 			// Tell the subclass to refresh the internal bean factory.
 			// 读取xml文件的配置信息到DefaultListableBeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// 准备在这种情况下使用的bean工厂。
 			// Prepare the bean factory for use in this context.
-
+			// 准备一下，设置了很多数据
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -588,6 +587,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 				// 为此上下文初始化消息源。
 				// Initialize message source for this context.
+				// spring 多语言，国际化
 				initMessageSource();
 
 				// 为此上下文初始化事件多播器。
@@ -598,12 +598,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Initialize other special beans in specific context subclasses.
 				onRefresh();
 
-				// 检查侦听器bean并注册它们
+				// 注册监听器
 				// Check for listener beans and register them.
 				registerListeners();
 
 				// 实例化所有剩余的（非延迟初始化）单例,注意这是单例
 				// Instantiate all remaining (non-lazy-init) singletons.
+				// singleton初始化
 				finishBeanFactoryInitialization(beanFactory);
 
 				// 最后一步：发布相应的事件。
@@ -710,12 +711,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
+		// 设置classloader
 		beanFactory.setBeanClassLoader(getClassLoader());
+		// 这个判断是刚加的，关于是否要支持sqel 语法
 		if (!shouldIgnoreSpel) {
 			beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		}
+		// propertyEditor相关.... 就是把值转换为对象
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
+
+		// 我们可以通过实现EnvironmentAware接口来获取spring 内部的一些对象
 		// Configure the bean factory with context callbacks.
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
@@ -723,6 +729,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
 		beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);
 		beanFactory.ignoreDependencyInterface(MessageSourceAware.class);
+		// 实际当中，我们可以通过实现applicationContextAware,来获取ApplicationContext,让我们可以在util层里面使用dao数据
 		beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
 		beanFactory.ignoreDependencyInterface(ApplicationStartup.class);
 
@@ -744,6 +751,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Register default environment beans.
+		// 注入环境，系统properties,系统env，  可以直接通过getBean来获取相关数据
 		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
 		}
@@ -753,6 +761,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		if (!beanFactory.containsLocalBean(SYSTEM_ENVIRONMENT_BEAN_NAME)) {
 			beanFactory.registerSingleton(SYSTEM_ENVIRONMENT_BEAN_NAME, getEnvironment().getSystemEnvironment());
 		}
+		// 这是刚出来的
 		if (!beanFactory.containsLocalBean(APPLICATION_STARTUP_BEAN_NAME)) {
 			beanFactory.registerSingleton(APPLICATION_STARTUP_BEAN_NAME, getApplicationStartup());
 		}
@@ -922,6 +931,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
+		// 类型转化
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -931,7 +941,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Register a default embedded value resolver if no bean post-processor
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
+		// 如果没有bean post-processor，注册一个内置的值处理器
 		if (!beanFactory.hasEmbeddedValueResolver()) {
+			// 解决placeHolders
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
@@ -948,6 +960,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
+		// 实例化所有剩余的非延迟的单例
+		// single实例保存在DefaultSingletonBeanRegistry
 		beanFactory.preInstantiateSingletons();
 	}
 

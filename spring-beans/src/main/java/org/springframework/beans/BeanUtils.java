@@ -186,7 +186,7 @@ public abstract class BeanUtils {
 	public static <T> T instantiateClass(Constructor<T> ctor, Object... args) throws BeanInstantiationException {
 		Assert.notNull(ctor, "Constructor must not be null");
 		try {
-			// 好贱啊，各个都问一下，是否是构造器 public或者是否类是否是public,以及accessible，最后设置为accessible为true
+			// 各个都问一下，是否是构造器 public或者是否类是否是public,以及accessible，最后设置为accessible为true
 			ReflectionUtils.makeAccessible(ctor);
 			if (KotlinDetector.isKotlinReflectPresent() && KotlinDetector.isKotlinType(ctor.getDeclaringClass())) {
 				return KotlinDelegate.instantiateClass(ctor, args);

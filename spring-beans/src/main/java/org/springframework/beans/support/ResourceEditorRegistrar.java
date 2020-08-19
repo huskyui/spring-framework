@@ -125,6 +125,7 @@ public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
 	 * otherwise register as a custom editor.
 	 */
 	private void doRegisterEditor(PropertyEditorRegistry registry, Class<?> requiredType, PropertyEditor editor) {
+		// 如果是PropertyEditorRegistrySupport
 		if (registry instanceof PropertyEditorRegistrySupport) {
 			((PropertyEditorRegistrySupport) registry).overrideDefaultEditor(requiredType, editor);
 		}
